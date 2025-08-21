@@ -17,15 +17,15 @@
 # --------------------
 #
 
-CORPUS  := nemotron-cc-10K-sample
+CORPUS  := transweb-edu
 VERSION := v1syn
 
 LICENSE   := <a href="https://creativecommons.org/licenses/by/4.0/">CC-BY 4.0</a>
 COPYRIGHT  = 
 
 SKIP_TOKENIZATION := 1
-SKIP_TMX          := 1
-# SKIP_DERIVED      := 1
+# SKIP_TMX          := 1
+SKIP_DERIVED      := 1
 # SKIP_BITEXT_INFO  := 1
 
 

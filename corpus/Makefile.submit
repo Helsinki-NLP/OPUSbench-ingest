@@ -55,6 +55,9 @@ endif
 ifeq (${shell hostname --domain},mahti.csc.fi)
 	echo '#SBATCH --account=${CSC_PROJECT}' >> $@
 endif
+ifeq (${HOST},lumi)
+	echo '#SBATCH --account=${CSC_PROJECT}' >> $@
+endif
 ifneq (${EMAIL},)
 	echo '#SBATCH --mail-type=END' >> $@
 	echo '#SBATCH --mail-user=${EMAIL}' >> $@

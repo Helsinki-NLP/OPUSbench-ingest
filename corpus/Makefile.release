@@ -105,7 +105,7 @@ MONO_DEDUP := $(patsubst %,${CORPUSRELEASE}/mono/%.dedup.gz,${LANGUAGES})
 CES_INFO  := $(patsubst ${CORPUSRELEASE}/xml/%.xml.gz,${CORPUSRELEASE}/info/%.info,$(wildcard ${CORPUSRELEASE}/xml/*.xml.gz))
 TXT_INFO  := $(patsubst ${CORPUSRELEASE}/moses/%.txt.zip,${CORPUSRELEASE}/info/%.txt.info,$(wildcard ${CORPUSRELEASE}/moses/*.txt.zip))
 TMX_INFO  := $(patsubst ${CORPUSRELEASE}/tmx/%.tmx.gz,${CORPUSRELEASE}/info/%.tmx.info,$(wildcard ${CORPUSRELEASE}/tmx/*.tmx.gz))
-LANG_INFO := $(patsubst %,${CORPUSRELEASE}/info/%.info,${LANGUAGES})
+LANG_INFO := $(sort $(patsubst %,${CORPUSRELEASE}/info/%.info,${LANGUAGES}))
 
 ## word frequency counts
 
@@ -144,8 +144,8 @@ WORDALG ?= $(patsubst %.zip,%.alg.zip,${SMT})
 ##       for each language and language pair
 ##-------------------------------------------------------------------
 
-BASIC_PACKAGES    := ${ALG} ${LANG_RAW} ${LANG_UD} ${MONO_RAW}
-DERIVED_PACKAGES  := $(MOSES) $(TMX) ${SMT} ${WORDALG} ${DIC}
+BASIC_PACKAGES    := ${ALG} ${LANG_RAW} ${LANG_UD}
+DERIVED_PACKAGES  := ${MONO_RAW} $(MOSES) $(TMX) ${SMT} ${WORDALG} ${DIC}
 
 BASIC_INFOFILES   := ${LANG_INFO} ${CES_INFO}
 DERIVED_INFOFILES := ${TXT_INFO} ${TMX_INFO}
@@ -212,9 +212,8 @@ PACKAGES := ${CORPUSPUB}/.packages
 
 .PHONY: release release-packages packages
 release release-packages packages: ${PACKAGES}
-	${MAKE} ${CORPUSRELEASE}.info
-	${MAKE} ${OPUSRELEASE}/${CORPUS}/info.txt
-	${MAKE} ${OPUSRELEASE}/${CORPUS}/releases.txt
+	${MAKE} info
+	${MAKE} release-info
 	${MAKE} ${CORPUSHOME}/releases.txt ${CORPUSHOME}/info.txt
 	rsync -zav ${OPUSRELEASE}/${CORPUS}/*.info ${CORPUSHOME}/
 	git add ${CORPUSHOME}/info.txt ${CORPUSHOME}/releases.txt ${CORPUSHOME}/*.info
@@ -231,6 +230,12 @@ show-nrof-packages:
 show-packages:
 	@echo  "${SELECTED_PACKAGES}" | tr ' ' "\n"
 # 	@echo  "${notdir ${SELECTED_PACKAGES}}" | tr ' ' "\n"
+
+
+.PHONY: show-infofiles
+show-infofiles:
+	@echo  "${INFOFILES}" | tr ' ' "\n"
+
 
 ##----------------------------------------------------------------
 ## submit individual SLURM jobs for creating release files
@@ -806,7 +811,7 @@ ${LANG_RAW} ${LANG_XML}:
 	echo "$(patsubst ${CORPUSRELEASE}/%.zip,${CORPUS}/%,$@)"  > $@.d/INFO
 	echo "${CORPUS}"                                         >> $@.d/INFO
 	echo "${VERSION}"                                        >> $@.d/INFO
-	cd $@.d && zip -r $@ INFO README LICENSE
+	cd $@.d && zip -u -q $@ INFO README LICENSE
 	find $@.d -delete
 	chmod 644 $@
 
@@ -1250,9 +1255,11 @@ info: ${INFOFILES}
 	${MAKE} ${CORPUSRELEASE}.info
 	${MAKE} ${OPUSRELEASE}/${CORPUS}/info.txt
 
+.PHONY: info-files
 info-files: ${INFOFILES}
 
 
+.PHONY: lang_info
 lang_info: ${LANG_INFO}
 
 ## if we skip tokenisation, then do a very simple word count
@@ -1261,19 +1268,23 @@ ifdef SKIP_TOKENIZATION
 
 ${LANG_INFO}: ${CORPUSRELEASE}/info/%.info: ${CORPUSRELEASE}/raw/%.zip
 	${MKDIR} ${dir $@}
-	unzip -Z1 $< '*.xml'                     | wc -l > $@
-	unzip -p $< '*.xml' | grep '</s>'        | wc -l >> $@
-	unzip -p $< '*.xml' | sed 's/<[^>]*>//g' | wc -w >> $@
-	chmod 644 $@
+	if [ ! -e $@ ]; then \
+	  unzip -Z1 $< '*.xml'                     | wc -l > $@; \
+	  unzip -p $< '*.xml' | grep '</s>'        | wc -l >> $@; \
+	  unzip -p $< '*.xml' | sed 's/<[^>]*>//g' | wc -w >> $@; \
+	  chmod 644 $@; \
+	fi
 
 else
 
 ${LANG_INFO}: ${CORPUSRELEASE}/info/%.info: ${CORPUSRELEASE}/raw/%.zip ${CORPUSRELEASE}/xml/%.zip
 	${MKDIR} ${dir $@}
-	unzip -Z1 $(word 1,$^) '*.xml'               | wc -l > $@
-	unzip -p  $(word 1,$^) '*.xml' | grep '</s>' | wc -l >> $@
-	unzip -p  $(word 2,$^) '*.xml' | grep '</w>' | wc -l >> $@
-	chmod 644 $@
+	if [ ! -e $@ ]; then \
+	  unzip -Z1 $(word 1,$^) '*.xml'               | wc -l > $@; \
+	  unzip -p  $(word 1,$^) '*.xml' | grep '</s>' | wc -l >> $@; \
+	  unzip -p  $(word 2,$^) '*.xml' | grep '</w>' | wc -l >> $@; \
+	  chmod 644 $@; \
+	fi
 
 endif
 
@@ -1416,9 +1427,8 @@ ${TMX_INFO}: ${CORPUSRELEASE}/info/%.tmx.info: ${CORPUSRELEASE}/tmx/%.tmx.gz
 
 
 ## TODO: is it enough to check whether the info dir exists?
-${OPUSRELEASE}/%.info: ${OPUSRELEASE}/%
+${OPUSRELEASE}/%.info: ${OPUSRELEASE}/% ${INFOFILES}
 	if [ -e $@ ]; then cp $@ $@.$(shell date +%F); fi
-	${MAKE} info-files
 	if [ -d $(@:.info=/info) ]; then \
 	  cd ${OPUSRELEASE}; \
 	  find ${patsubst ${OPUSRELEASE}/%.info,%/info,$@} -name '*.info' | sort |\

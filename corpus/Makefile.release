@@ -416,24 +416,28 @@ ${OPUSRELEASE}/index-info.txt:
 
 # upload release packages and websites to allas, IDA, OPUS server
 
+MAKE_ADMIN = ${MAKE} -C ${OPUSHOME}/admin CSC_PROJECT=${CSC_RELEASE_PROJECT} CORPUS=${CORPUS} VERSION=${VERSION}
+
 .PHONY: upload
 upload: ${PACKAGES}
 	which a-get   ## to make sure that allas connections are set up
-	${MAKE} -C ${OPUSHOME}/admin CORPUS=${CORPUS} VERSION=${VERSION} upload
+	${MAKE_ADMIN} upload
 
 .PHONY: upload-website
 upload-website: ${SAMPLE_FILES} ${OPUSPUB}/${CORPUS}-${VERSION}.php ${OPUSPUB}/${CORPUS}.php
-	${MAKE} -C ${OPUSHOME}/admin CORPUS=${CORPUS} VERSION=${VERSION} sync-html
+	chmod o+rX ${OPUSPUB}/public_html/*
+	chmod o+r ${OPUSPUB}/${CORPUS}/${VERSION}/*.html
+	${MAKE_ADMIN} sync-html
 
 .PHONY: upload-cwb
 upload-cwb:
 	if [ -d ${CWBREG}/${CORPUS}-${VERSION} ]; then \
-	  ${MAKE} -C ${OPUSHOME}/admin CORPUS=${CORPUS} VERSION=${VERSION} sync-cwb; \
+	  ${MAKE_ADMIN} sync-cwb; \
 	fi
 
 .PHONY: upload-ida
 upload-ida: ${PACKAGES}
-	${MAKE} -C ${OPUSHOME}/admin CORPUS=${CORPUS} VERSION=${VERSION} upload-ida
+	${MAKE_ADMIN} upload-ida
 
 
 # release data in NLPL partition
@@ -1305,7 +1309,15 @@ ces_info: ${CES_INFO}
 ces_info_file: ${CORPUSRELEASE}/info/${LANGPAIR}.info
 
 
-ifdef SKIP_TOKENIZATION
+ifdef BITEXT_COUNTS_FROM_LANGINFO
+
+${CES_INFO}: ${LANG_INFO}
+	head -1 ${CORPUSRELEASE}/info/$(firstword $(subst -, ,$(notdir $(@:.info=)))).info            > $@
+	head -2 ${CORPUSRELEASE}/info/$(firstword $(subst -, ,$(notdir $(@:.info=)))).info | tail -1 >> $@
+	head -3 ${CORPUSRELEASE}/info/$(firstword $(subst -, ,$(notdir $(@:.info=)))).info | tail -1 >> $@
+	head -3 ${CORPUSRELEASE}/info/$(lastword  $(subst -, ,$(notdir $(@:.info=)))).info | tail -1 >> $@
+
+else ifdef SKIP_TOKENIZATION
 
 ${CES_INFO}: ${CORPUSRELEASE}/info/%.info: ${CORPUSRELEASE}/xml/%.xml.gz
 	mkdir -p ${dir $@} ${LOCALTMP}

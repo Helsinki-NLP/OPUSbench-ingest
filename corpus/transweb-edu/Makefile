@@ -1,5 +1,8 @@
 # -*-makefile-*-
 #
+# use project_2005815 for allas storage
+# --> HPLT project (100TiB storage available)
+#
 
 
 include Makefile.def

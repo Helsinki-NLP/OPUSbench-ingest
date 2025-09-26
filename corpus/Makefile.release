@@ -425,7 +425,7 @@ upload: ${PACKAGES}
 
 .PHONY: upload-website
 upload-website: ${SAMPLE_FILES} ${OPUSPUB}/${CORPUS}-${VERSION}.php ${OPUSPUB}/${CORPUS}.php
-	chmod o+rX ${OPUSPUB}/public_html/*
+	chmod o+rX ${OPUSPUB}/*
 	chmod o+r ${OPUSPUB}/${CORPUS}/${VERSION}/*.html
 	${MAKE_ADMIN} sync-html
 
@@ -973,8 +973,11 @@ ${ALG_SAMPLES}: ${CORPUSPUB}/%_sample.html: ${CORPUSRELEASE}/xml/%.xml.gz
 	opus_read -rd ${OPUSRELEASE} -r ${VERSION} -d ${CORPUS} -p raw -af $< -wm moses \
 		-s $(firstword $(subst -, ,$(firstword $(subst ., ,$(notdir $<))))) \
 		-t $(lastword $(subst -, ,$(firstword $(subst ., ,$(notdir $<))))) \
-		-S 1-10 -T 1-10 -m 100 \
-	| sed -e 's/	/<br\/>	/' -e 's/$$/	<hr\/>/' | tr "\t" "\n" >> $@
+		-sz ${CORPUSRELEASE}/raw/$(firstword $(subst -, ,$(firstword $(subst ., ,$(notdir $<))))).zip \
+		-tz ${CORPUSRELEASE}/raw/$(lastword $(subst -, ,$(firstword $(subst ., ,$(notdir $<))))).zip \
+		-S 1-10 -T 1-10 -m 100 -w $@.tmp
+	cat $@.tmp | sed -e 's/	/<br\/>	/' -e 's/$$/	<hr\/>/' | tr "\t" "\n" >> $@
+	rm -f $@.tmp
 	echo '</p></body></html/>' >> $@
 	chmod 644 $@
 
@@ -1274,7 +1277,7 @@ ${LANG_INFO}: ${CORPUSRELEASE}/info/%.info: ${CORPUSRELEASE}/raw/%.zip
 	${MKDIR} ${dir $@}
 	if [ ! -e $@ ]; then \
 	  unzip -Z1 $< '*.xml'                     | wc -l > $@; \
-	  unzip -p $< '*.xml' | grep '</s>'        | wc -l >> $@; \
+	  unzip -p $< '*.xml' | grep -o '</s>'     | wc -l >> $@; \
 	  unzip -p $< '*.xml' | sed 's/<[^>]*>//g' | wc -w >> $@; \
 	  chmod 644 $@; \
 	fi
@@ -1284,9 +1287,9 @@ else
 ${LANG_INFO}: ${CORPUSRELEASE}/info/%.info: ${CORPUSRELEASE}/raw/%.zip ${CORPUSRELEASE}/xml/%.zip
 	${MKDIR} ${dir $@}
 	if [ ! -e $@ ]; then \
-	  unzip -Z1 $(word 1,$^) '*.xml'               | wc -l > $@; \
-	  unzip -p  $(word 1,$^) '*.xml' | grep '</s>' | wc -l >> $@; \
-	  unzip -p  $(word 2,$^) '*.xml' | grep '</w>' | wc -l >> $@; \
+	  unzip -Z1 $(word 1,$^) '*.xml'                  | wc -l > $@; \
+	  unzip -p  $(word 1,$^) '*.xml' | grep -o '</s>' | wc -l >> $@; \
+	  unzip -p  $(word 2,$^) '*.xml' | grep -o '</w>' | wc -l >> $@; \
 	  chmod 644 $@; \
 	fi
 
@@ -1324,6 +1327,8 @@ ${CES_INFO}: ${CORPUSRELEASE}/info/%.info: ${CORPUSRELEASE}/xml/%.xml.gz
 	opus_read -rd ${OPUSRELEASE} -r ${VERSION} -d ${CORPUS} -p raw -af $< -wm moses \
 		-s $(firstword $(subst -, ,$(firstword $(subst ., ,$(notdir $<))))) \
 		-t $(lastword $(subst -, ,$(firstword $(subst ., ,$(notdir $<))))) \
+		-sz ${CORPUSRELEASE}/raw/$(firstword $(subst -, ,$(firstword $(subst ., ,$(notdir $<))))).zip \
+		-tz ${CORPUSRELEASE}/raw/$(lastword $(subst -, ,$(firstword $(subst ., ,$(notdir $<))))).zip \
 		-w ${LOCALTMP}/$(notdir $@).source ${LOCALTMP}/$(notdir $@).target
 	zgrep '</linkGrp>' $< | wc -l          > $@
 	wc -l < ${LOCALTMP}/$(notdir $@).source >> $@
@@ -1347,6 +1352,8 @@ ${CES_INFO}: ${CORPUSRELEASE}/info/%.info: ${CORPUSRELEASE}/xml/%.xml.gz log/.bi
 	  opus_read -rd ${OPUSRELEASE} -r ${VERSION} -d ${CORPUS} -p xml -af $< -wm moses \
 		-s $(firstword $(subst -, ,$(firstword $(subst ., ,$(notdir $<))))) \
 		-t $(lastword $(subst -, ,$(firstword $(subst ., ,$(notdir $<))))) \
+		-sz ${CORPUSRELEASE}/raw/$(firstword $(subst -, ,$(firstword $(subst ., ,$(notdir $<))))).zip \
+		-tz ${CORPUSRELEASE}/raw/$(lastword $(subst -, ,$(firstword $(subst ., ,$(notdir $<))))).zip \
 		-w ${LOCALTMP}/$(notdir $@).source ${LOCALTMP}/$(notdir $@).target; \
 	  zgrep '</linkGrp>' $< | wc -l            > $@; \
 	  wc -l < ${LOCALTMP}/$(notdir $@).source >> $@; \

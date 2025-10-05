@@ -1,9 +1,9 @@
 [submodule "tools/moses-scripts"]
 	path = tools/moses-scripts
 	url = https://github.com/marian-nmt/moses-scripts.git
-[submodule "synOPUS"]
-	path = synOPUS
-	url = ../synOPUS
-[submodule "synOPUS-website"]
-	path = synOPUS-website
-	url = ../synOPUS-website
+[submodule "OPUSbench-website"]
+	path = OPUSbench-website
+	url = ../OPUSbench-website
+[submodule "OPUSbench"]
+	path = OPUSbench
+	url = ../OPUSbench

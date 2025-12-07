@@ -1,0 +1,54 @@
+# -*-makefile-*-
+#
+# name & version of the corpus
+#
+# TODO: better way of defining multiline citation block
+# (maybe https://gist.github.com/azatoth/1030091)
+# define multiline content in variables:
+# --------------------
+# define data
+# foo
+# bar
+# baz
+# endef
+# export data
+# all:
+# 	@echo "$$data"
+# --------------------
+#
+
+CORPUS  := OpenSubtitles-multitest
+VERSION := v2024
+
+LANGSTR   := ar-bg-cs-da-de-el-en-es-et-fa-fi-fr-he-hi-hr-hu-id-it-ko-lt-lv-ms-nl-no-pl-pt-pt_BR-ro-ru-sk-sl-sr-sv-ta-te-tr-uk-vi-zh_CN-zh_TW
+LANGUAGES := $(subst -, ,${LANGSTR})
+
+LANGPAIRS := ${shell \
+	for s in ${LANGUAGES}; do \
+	  for t in ${LANGUAGES}; do \
+	    if [[ "$$s" < "$$t" ]]; then \
+	      echo "$$s-$$t"; \
+	    fi \
+	  done \
+	done  }
+
+
+# LICENSE   := <a href="https://creativecommons.org/licenses/by/4.0/">CC-BY 4.0</a>
+# COPYRIGHT  = 
+
+SKIP_TOKENIZATION           := 1
+SKIP_DERIVED                := 1
+BITEXT_COUNTS_FROM_LANGINFO := 1
+
+# SKIP_TMX          := 1
+# SKIP_BITEXT_INFO  := 1
+
+## for transweb-edu we use the HPLT project
+# CSC_RELEASE_PROJECT := project_2005815
+
+
+SRCHTML=<p>This is the multiparallel test set collection of the OpenSubtitles ${VERSION} parallel corpus derived from  <a href="http://www.opensubtitles.org/">http://www.opensubtitles.org/</a>. It includes a carefully selected set of heldout subtitles from movies and TV episodes released in 2024 aligned across all available languages with synchronized alignments across all languages.<br/><a href="http://www.opensubtitles.org/"><img src="https://static.opensubtitles.org/gfx/logo.gif"></a></p><p><b>IMPORTANT:</b> If you use the OpenSubtitle corpus: Please, add a link to <b>http://www.opensubtitles.org/</b> to your website and to your reports and publications produced with the data!</p>
+
+
+# EXTRAHTML = Simple example corpus
+# CITENOTE= 

@@ -1,0 +1,44 @@
+# -*-makefile-*-
+#
+# name & version of the corpus
+#
+# TODO: better way of defining multiline citation block
+# (maybe https://gist.github.com/azatoth/1030091)
+# define multiline content in variables:
+# --------------------
+# define data
+# foo
+# bar
+# baz
+# endef
+# export data
+# all:
+# 	@echo "$$data"
+# --------------------
+#
+
+CORPUS  := OpenSubtitles-test
+VERSION := v2024
+
+LANGUAGES := ar az be bg bn bs ca cs da de el en en_ze es es_419 es_ES et eu fa fi fr gl he hi hr hu hy id is it ka kk km kn ko ku lt lv mk ml mn ms my nl no pl ps pt pt_BR pt_MZ ro ru si sk sl sq sr sv sw ta te tl tr tt uk ur uz vi yue zh_CN zh_TW zh_ze
+
+
+# LICENSE   := <a href="https://creativecommons.org/licenses/by/4.0/">CC-BY 4.0</a>
+# COPYRIGHT  = 
+
+SKIP_TOKENIZATION           := 1
+SKIP_DERIVED                := 1
+BITEXT_COUNTS_FROM_LANGINFO := 1
+
+# SKIP_TMX          := 1
+# SKIP_BITEXT_INFO  := 1
+
+## for transweb-edu we use the HPLT project
+# CSC_RELEASE_PROJECT := project_2005815
+
+
+SRCHTML=<p>This is the test set collection of the OpenSubtitles ${VERSION} parallel corpus derived from  <a href="http://www.opensubtitles.org/">http://www.opensubtitles.org/</a>. It includes a carefully selected set of heldout subtitles from movies and TV episodes released in 2024 aligned across all available languages.<br/><a href="http://www.opensubtitles.org/"><img src="https://static.opensubtitles.org/gfx/logo.gif"></a></p><p><b>IMPORTANT:</b> If you use the OpenSubtitle corpus: Please, add a link to <b>http://www.opensubtitles.org/</b> to your website and to your reports and publications produced with the data!</p>
+
+
+# EXTRAHTML = Simple example corpus
+# CITENOTE= 

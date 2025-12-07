@@ -26,14 +26,14 @@ CSC_PROJECT         ?= ${CSC_WORK_PROJECT}
 
 ## NLPL space
 NLPLHOME            ?= /projappl/nlpl
-OPUSNLPL            := ${NLPLHOME}/data/synOPUS
+OPUSNLPL            := ${NLPLHOME}/data/OPUSbench
 
 
 
 ## Object storage container names
 
-WORK_CONTAINER_BASENAME    = project-synOPUS
-RELEASE_CONTAINER_BASENAME = synOPUS
+WORK_CONTAINER_BASENAME    = project-OPUSbench
+RELEASE_CONTAINER_BASENAME = OPUSbench
 
 ## scratch/work space
 ## TODO: remove hard-coded scratch space location
@@ -50,8 +50,8 @@ endif
 
 
 WORKDIR         ?= ${TMPDIR}
-OPUSHOME        ?= $(shell pwd | sed 's!\(.*\)\(synOPUS\|synOPUS-ingest\)/.*!\1\2!')
-LOCAL_OPUSHOME  ?= ${WORKDIR}/synOPUS
+OPUSHOME        ?= $(shell pwd | sed 's!\(.*\)\(OPUSbench\|OPUSbench-ingest\)/.*!\1\2!')
+LOCAL_OPUSHOME  ?= ${WORKDIR}/OPUSbench
 CORPUS          ?= RF
 
 
@@ -61,7 +61,7 @@ CORPUS          ?= RF
 
 OPUSCORPORA   = ${OPUSHOME}/corpus
 OPUSPUB       = ${OPUSHOME}/public_html
-OPUSGITHOME   = ${OPUSHOME}/synOPUS
+OPUSGITHOME   = ${OPUSHOME}/OPUSbench
 OPUSRELEASE   = ${OPUSHOME}/releases
 # OPUSRELEASE   = ${OPUSNLPL}
 

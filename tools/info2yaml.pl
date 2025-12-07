@@ -18,7 +18,7 @@ my $corpusdir   = shift(@ARGV);
 my %statistics  = ();
 my %info        = ();
 my %GeneralInfo = ();
-my $storagehome = 'https://object.pouta.csc.fi/synOPUS-';
+my $storagehome = 'https://object.pouta.csc.fi/OPUSbench-';
 
 
 ## read info and file statistics

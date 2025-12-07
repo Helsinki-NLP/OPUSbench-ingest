@@ -736,8 +736,8 @@ ifneq (${SOURCE_URL},)
 	@echo "      Source: ${SOURCE_URL}"   >>$@
 endif
 	@echo "" >>$@
-	@echo "This package is part of synOPUS - the open collection of synthetic parallel corpora" >> $@
-	@echo "OPUS Website: http://opus.nlpl.eu/synthetic" >> $@
+	@echo "This package is part of OPUSbench - the open collection of machine translation benchmarks" >> $@
+	@echo "OPUS Website: http://opus.nlpl.eu/bench" >> $@
 	@echo "" >>$@
 #	@echo "${CITENOTE}" | sed 's/<[^>]*>//g' >> $@
 	@echo '${CITENOTE_SAFE}'         >> $@                        # escape "
@@ -815,7 +815,7 @@ ${LANG_RAW} ${LANG_XML}:
 	echo "$(patsubst ${CORPUSRELEASE}/%.zip,${CORPUS}/%,$@)"  > $@.d/INFO
 	echo "${CORPUS}"                                         >> $@.d/INFO
 	echo "${VERSION}"                                        >> $@.d/INFO
-	cd $@.d && zip -u -q $@ INFO README LICENSE
+	cd $@.d && zip --password ${CORPUS} -u -q $@ INFO README LICENSE
 	find $@.d -delete
 	chmod 644 $@
 
@@ -828,7 +828,7 @@ ${TMPDIR}/${CORPUS}/%.zip: ${CORPUSHOME}/%
 	rsync -a $< $(dir $@)
 	find $(@:.zip=) -type l -delete
 	find $(@:.zip=) -name '*.gz' | xargs -P ${THREADS} gunzip -f
-	cd ${TMPDIR} && zip -r $@ $(patsubst ${TMPDIR}/%,%,$(@:.zip=))
+	cd ${TMPDIR} && zip --password ${CORPUS} -r $@ $(patsubst ${TMPDIR}/%,%,$(@:.zip=))
 	find $(@:.zip=) -delete
 
 
@@ -857,7 +857,7 @@ ${LANG_UD}: ${CORPUSRELEASE}/parsed/%.zip: ${CORPUSPARSED}/%
 	echo "${patsubst ${OPUSCORPORA}/%,%,$<}" > ${TMPDIR}/$</INFO
 	echo "${CORPUS}" >> ${TMPDIR}/$</INFO
 	echo "${VERSION}" >> ${TMPDIR}/$</INFO
-	( cd ${TMPDIR}/$<; zip -r $@ INFO README LICENSE ${CORPUS}; cd ${PWD} )
+	( cd ${TMPDIR}/$<; zip --password ${CORPUS} -r $@ INFO README LICENSE ${CORPUS}; cd ${PWD} )
 	rm -fr ${TMPDIR}/$<
 	${MKDIR} ${dir ${PACKAGES}}
 	echo "$@" | sed "s#${OPUSRELEASE}/##" >> ${PACKAGES}
@@ -874,14 +874,14 @@ mono_raw: ${MONO_RAW}
 
 ${CORPUSRELEASE}/mono/%.tok.gz: ${CORPUSRELEASE}/xml/%.zip
 	@${MKDIR} ${dir $@}
-	unzip -p $< '*.xml' | ${OPUSTOOLS}/opus2txt.py | ${GZIP} -c > $@
+	unzip -P ${CORPUS} -p $< '*.xml' | ${OPUSTOOLS}/opus2txt.py | ${GZIP} -c > $@
 	${MKDIR} ${dir ${PACKAGES}}
 	echo "$@" | sed "s#${OPUSRELEASE}/##" >> ${PACKAGES}
 	chmod 644 $@
 
 ${CORPUSRELEASE}/mono/%.txt.gz: ${CORPUSRELEASE}/raw/%.zip
 	@${MKDIR} ${dir $@}
-	unzip -p $< '*.xml' | ${OPUSTOOLS}/opus2txt.py | ${GZIP} -c > $@
+	unzip -P ${CORPUS} -p $< '*.xml' | ${OPUSTOOLS}/opus2txt.py | ${GZIP} -c > $@
 	${MKDIR} ${dir ${PACKAGES}}
 	echo "$@" | sed "s#${OPUSRELEASE}/##" >> ${PACKAGES}
 	chmod 644 $@
@@ -1015,7 +1015,7 @@ corpus_samples: ${CORPUS_SAMPLES}
 ${CORPUS_SAMPLES}: ${CORPUSPUB}/%_sample.html: ${CORPUSRELEASE}/raw/%.zip
 	@${MKDIR} ${dir $@}
 	echo '<html><head></head><body><pre>'      >$@
-	-unzip -p $< '*.xml' | head -100 \
+	-unzip -P ${CORPUS} -p $< '*.xml' | head -100 \
 	| recode utf8..utf16 | recode utf16..html >> $@
 	echo '</pre></body></html>' >> $@
 	chmod 644 $@
@@ -1025,7 +1025,7 @@ ${CORPUS_SAMPLES}: ${CORPUSPUB}/%_sample.html: ${CORPUSRELEASE}/raw/%.zip
 # ${CORPUS_SAMPLES}: ${CORPUSPUB}/%_sample.html: ${CORPUSRELEASE}/xml/%.zip
 # 	@${MKDIR} ${dir $@}
 # 	echo '<html><head></head><body><pre>'      >$@
-# 	-unzip -p $< '*.xml' | head -100 \
+# 	-unzip -P ${CORPUS} -p $< '*.xml' | head -100 \
 # 	| recode utf8..utf16 | recode utf16..html >> $@
 # 	echo '</pre></body></html>' >> $@
 # 	chmod 644 $@
@@ -1154,13 +1154,13 @@ $(MOSES) $(MOSES_STRICT): ${CORPUSRELEASE}/moses/%.txt.zip: ${CORPUSRELEASE}/xml
 			-S 1-100 -T 1-100 -s $$S -t $$T \
 			-af ${LOCALTMP}/$(notdir $@).d/${CORPUS}/${VERSION}/raw/$(notdir $<) \
 			-wm moses -w ${LOCALTMP}/$$F.$$S ${LOCALTMP}/$$F.$$T; \
-	  zip -j ${LOCALTMP}/$(notdir $@) ${LOCALTMP}/$$F.$$S ${LOCALTMP}/$$F.$$T; \
+	  zip --password ${CORPUS} -j ${LOCALTMP}/$(notdir $@) ${LOCALTMP}/$$F.$$S ${LOCALTMP}/$$F.$$T; \
 	  wc -l < ${LOCALTMP}/$$F.$$S  > $(CORPUSRELEASE)/info/$(notdir $(@:zip=info)); \
 	  wc -w < ${LOCALTMP}/$$F.$$S >> $(CORPUSRELEASE)/info/$(notdir $(@:zip=info)); \
 	  wc -w < ${LOCALTMP}/$$F.$$T >> $(CORPUSRELEASE)/info/$(notdir $(@:zip=info)); \
 	  rm -f ${LOCALTMP}/$(notdir $@).d/${CORPUS}/${VERSION}/raw/* ${LOCALTMP}/$$F.$$S ${LOCALTMP}/$$F.$$T; )
 	${MAKE} PACKAGE="$$S-$$T in Moses format" ${LOCALTMP}/$(notdir $@).d/README ${LOCALTMP}/$(notdir $@).d/LICENSE
-	zip -j ${LOCALTMP}/$(notdir $@) ${LOCALTMP}/$(notdir $@).d/README ${LOCALTMP}/$(notdir $@).d/LICENSE
+	zip --password ${CORPUS} -j ${LOCALTMP}/$(notdir $@) ${LOCALTMP}/$(notdir $@).d/README ${LOCALTMP}/$(notdir $@).d/LICENSE
 	rm -f ${LOCALTMP}/$(notdir $@).d/README ${LOCALTMP}/$(notdir $@).d/LICENSE
 	mv -f ${LOCALTMP}/$(notdir $@) $@
 	touch $(CORPUSRELEASE)/info/$(notdir $(@:zip=info))
@@ -1277,8 +1277,8 @@ ${LANG_INFO}: ${CORPUSRELEASE}/info/%.info: ${CORPUSRELEASE}/raw/%.zip
 	${MKDIR} ${dir $@}
 	if [ ! -e $@ ]; then \
 	  unzip -Z1 $< '*.xml'                     | wc -l > $@; \
-	  unzip -p $< '*.xml' | grep -o '</s>'     | wc -l >> $@; \
-	  unzip -p $< '*.xml' | sed 's/<[^>]*>//g' | wc -w >> $@; \
+	  unzip -P ${CORPUS} -p $< '*.xml' | grep -o '</s>'     | wc -l >> $@; \
+	  unzip -P ${CORPUS} -p $< '*.xml' | sed 's/<[^>]*>//g' | wc -w >> $@; \
 	  chmod 644 $@; \
 	fi
 
@@ -1288,8 +1288,8 @@ ${LANG_INFO}: ${CORPUSRELEASE}/info/%.info: ${CORPUSRELEASE}/raw/%.zip ${CORPUSR
 	${MKDIR} ${dir $@}
 	if [ ! -e $@ ]; then \
 	  unzip -Z1 $(word 1,$^) '*.xml'                  | wc -l > $@; \
-	  unzip -p  $(word 1,$^) '*.xml' | grep -o '</s>' | wc -l >> $@; \
-	  unzip -p  $(word 2,$^) '*.xml' | grep -o '</w>' | wc -l >> $@; \
+	  unzip -P ${CORPUS} -p  $(word 1,$^) '*.xml' | grep -o '</s>' | wc -l >> $@; \
+	  unzip -P ${CORPUS} -p  $(word 2,$^) '*.xml' | grep -o '</w>' | wc -l >> $@; \
 	  chmod 644 $@; \
 	fi
 
@@ -1407,7 +1407,7 @@ ${TXT_INFO}: ${CORPUSRELEASE}/info/%.txt.info: ${CORPUSRELEASE}/moses/%.txt.zip
 	${MKDIR} ${dir $@}
 	-( mkdir -p ${LOCALTMP}; \
 	   cd ${LOCALTMP}; \
-	   unzip -d . $< -x README INFO LICENSE; \
+	   unzip -P ${CORPUS} -d . $< -x README INFO LICENSE; \
 	   S=$(firstword $(subst -, ,$(firstword $(subst ., ,$(notdir $<)))));\
 	   T=$(lastword $(subst -, ,$(firstword $(subst ., ,$(notdir $<)))));\
 	   P=$$S-$$T; \
@@ -1416,7 +1416,7 @@ ${TXT_INFO}: ${CORPUSRELEASE}/info/%.txt.info: ${CORPUSRELEASE}/moses/%.txt.zip
 		find home -name "*$$P.$$S" -exec mv {} ${CORPUS}.$$P.$$S \; ; \
 		find home -name "*$$P.$$T" -exec mv {} ${CORPUS}.$$P.$$T \; ; \
 		rm -f $< ;\
-		zip $< ${CORPUS}.$$P.$$S ${CORPUS}.$$P.$$T; \
+		zip --password ${CORPUS} $< ${CORPUS}.$$P.$$S ${CORPUS}.$$P.$$T; \
 	   fi; \
 	   wc -l < ${CORPUS}.$$P.$$S > $(CORPUSRELEASE)/info/$$P.txt.info; \
 	   wc -w < ${CORPUS}.$$P.$$S >> $(CORPUSRELEASE)/info/$$P.txt.info; \
